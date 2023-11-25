@@ -9,26 +9,26 @@
 
 #### Fig3A Analyzed data ####
 # mkdir RidM1
-# python3 GA_RankDependency.py 1 "RidM1/N100_RankDepend_R1_A001"
-# python3 GA_RankDependency.py 2 "RidM1/N100_RankDepend_R2_A001"
-# python3 GA_RankDependency.py 3 "RidM1/N100_RankDepend_R3_A001"
-# python3 GA_RankDependency.py 6 "RidM1/N100_RankDepend_R6_A001"
+# python3 RankDependency.py 1 "RidM1/N100_RankDepend_R1_A001" GA 0.01
+# python3 RankDependency.py 2 "RidM1/N100_RankDepend_R2_A001" GA 0.01
+# python3 RankDependency.py 3 "RidM1/N100_RankDepend_R3_A001" GA 0.01
+# python3 RankDependency.py 6 "RidM1/N100_RankDepend_R6_A001" GA 0.01
 
 #### Fig3B Analyzed data ####
 # mkdir RidM3
 # parameter: GA_InitDependency.py {Goal matrix rank} {output path} {variance normalize}
-# python3 GA_InitDependency.py 1 "RidM3/InitDepend_R1" 0
-# python3 GA_InitDependency.py 2 "RidM3/InitDepend_R2" 0
-# python3 GA_InitDependency.py 3 "RidM3/InitDepend_R3" 0
-# python3 GA_InitDependency.py 6 "RidM3/InitDepend_R6" 0
+# python3 InitDependency.py 1 "RidM3/InitDepend_R1" 0 GA
+# python3 InitDependency.py 2 "RidM3/InitDepend_R2" 0 GA
+# python3 InitDependency.py 3 "RidM3/InitDepend_R3" 0 GA
+# python3 InitDependency.py 6 "RidM3/InitDepend_R6" 0 GA
 
 #### S4FigA Analyzed data ####
 # mkdir Rid5
-# parameter: GA_InitDependency.py {Goal matrix rank} {output path} {variance normalize}}
-# python3 GA_InitDependency.py 1 "RidS5/InitDepend_R1_VN" 1
-# python3 GA_InitDependency.py 2 "RidS5/InitDepend_R2_VN" 1
-# python3 GA_InitDependency.py 3 "RidS5/InitDepend_R3_VN" 1
-# python3 GA_InitDependency.py 6 "RidS5/InitDepend_R6_VN" 1
+# parameter:_InitDependency.py {Goal matrix rank} {output path} {variance normalize}}
+# python3 InitDependency.py 1 "RidS5/InitDepend_R1_VN" 1
+# python3 InitDependency.py 2 "RidS5/InitDepend_R2_VN" 1
+# python3 InitDependency.py 3 "RidS5/InitDepend_R3_VN" 1
+# python3 InitDependency.py 6 "RidS5/InitDepend_R6_VN" 1
 
 
 #### Fig3CD Analyzed data ####
@@ -107,3 +107,31 @@
 # python3 GA_GeneralDependency.py 6 "Rid6VN/GeneDep_R6_VN" 150000 1
 
 
+#### S6FigA Analyzed data ####
+# mkdir S6FigA
+# python3 RankDependency.py 1 "S6FigA/N100_RankDepend_R1_A001" GD 0.001
+# python3 RankDependency.py 2 "S6FigA/N100_RankDepend_R2_A001" GD 0.001
+# python3 RankDependency.py 3 "S6FigA/N100_RankDepend_R3_A001" GD 0.001
+# python3 RankDependency.py 6 "S6FigA/N100_RankDepend_R6_A001" GD 0.001
+
+
+#### S6FigB Analyzed data ####
+# mkdir RidM3
+# parameter: GA_InitDependency.py {Goal matrix rank} {output path} {variance normalize}
+# python3 InitDependency.py 1 "RidM3/InitDepend_R1" 0 GD
+# python3 InitDependency.py 2 "RidM3/InitDepend_R2" 0 GD
+# python3 InitDependency.py 3 "RidM3/InitDepend_R3" 0 GD
+# python3 InitDependency.py 6 "RidM3/InitDepend_R6" 0 GD
+
+#### S6FigC Analyzed data ####
+# mkdir RidM2
+# python3 TimeTrajectory.py 1 "RidM2/TimeTrajectoryA001_R1" 0.01 #### Fig3CD Analyzed data ####
+# mkdir RidM2
+# python3 GA_TimeTrajectory.py 1 "RidM2/TimeTrajectoryA001_R1" 0.001 60000 0 0 0 GD
+# python3 GA_TimeTrajectory.py 2 "RidM2/TimeTrajectoryA001_R2" 0.001 60000 0 0 0 GD
+# python3 GA_TimeTrajectory.py 3 "RidM2/TimeTrajectoryA001_R3" 0.001 60000 0 0 0 GD
+# python3 GA_TimeTrajectory.py 6 "RidM2/TimeTrajectoryA001_R6" 0.001 1000000 0 0 0 GD
+# python3 GA_TimeTrajectory.py 1 "RidM2/TimeTrajectoryA40_R1" 40 60000 0 0 0 GD
+# python3 GA_TimeTrajectory.py 2 "RidM2/TimeTrajectoryA40_R2" 40 60000 0 0 0 GD
+# python3 GA_TimeTrajectory.py 3 "RidM2/TimeTrajectoryA40_R3" 40 60000 0 0 0 GD
+# python3 GA_TimeTrajectory.py 6 "RidM2/TimeTrajectoryA40_R6" 40 1000000 0 0 0 GD

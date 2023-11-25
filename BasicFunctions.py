@@ -57,7 +57,7 @@ def create_network(nNode, nMatrix, norm):
     pre_net_norm = (np.linalg.norm(Total_in_out(pre_net), ord="fro"))
     normalizeF = (norm/pre_net_norm)**(1/(nMatrix))
     network = normalizeF*pre_net
-    return genom(network, 0)
+    return network
 
 def Total_in_out(Ind):
     nMatrix = len(Ind)
@@ -94,7 +94,7 @@ def select(population, tournament_size):
 """
 
 def Deleted_fitness(Ind, node, layer):    
-    modified_network =  copy.deepcopy(Ind.getGenom())
+    modified_network =  copy.deepcopy(Ind)
     Input_link_layer = layer - 1
     Output_link_layer = layer
     if layer == 0: #Eliminate input layer
@@ -105,14 +105,14 @@ def Deleted_fitness(Ind, node, layer):
         modified_network[Input_link_layer][node,] = 0   #eliminate input from 
         modified_network[Output_link_layer][:,node] = 0
 
-    orig_network = copy.deepcopy(Ind.getGenom())
+    orig_network = copy.deepcopy(Ind)
     orig_fit = evaluation(orig_network, DesiredGoal)
     modi_fit = evaluation(modified_network, DesiredGoal)
     relative_fitness = abs(orig_fit-modi_fit)    
     return(relative_fitness)
 
 def Deleted_totalinout(Ind, node, layer):
-    modified_network =  copy.deepcopy(Ind.getGenom())
+    modified_network =  copy.deepcopy(Ind)
     Input_link_layer = layer - 1
     Output_link_layer = layer
     if layer == 0: #Eliminate input layer
@@ -122,7 +122,7 @@ def Deleted_totalinout(Ind, node, layer):
     else: #Eliminate intermidiate layer
         modified_network[Input_link_layer][node,] = 0   #eliminate input from 
         modified_network[Output_link_layer][:,node] = 0
-    orig_network = copy.deepcopy(Ind.getGenom())
+    orig_network = copy.deepcopy(Ind)
     diff = Total_in_out(orig_network) - Total_in_out(modified_network)
     relative_fitness = np.sum(diff**2)  
     return(relative_fitness)
@@ -131,9 +131,9 @@ def Deleted_totalinout(Ind, node, layer):
 def MaximumInteraction(Ind, node, layer):
     inmax,outmax = 0,0
     if layer > 0:
-        inmax = max(Ind.getGenom()[layer-1][node,:])
+        inmax = max(Ind[layer-1][node,:])
     if layer < nLayer-1:
-        outmax = max(Ind.getGenom()[layer][:,node])
+        outmax = max(Ind[layer][:,node])
     #threshold: 0.05
     return max(inmax,outmax)
 
@@ -219,13 +219,7 @@ def set_eva(Ind, DesiredGoal):
     Ind.setEvaluation(eva)
     return(Ind)
 
-def CreateInd(nNode, nMatrix, norm):
-    #This function returns Node x Node x Layer Matrix, which describe individual's network structure
-    pre_net =  np.random.uniform(0, 0.05, (nMatrix, nNode, nNode))
-    pre_net_norm = (np.linalg.norm(Total_in_out(pre_net), ord="fro")) 
-    normalizeF = (norm/pre_net_norm)**(1/(nMatrix))
-    network = normalizeF*pre_net
-    return genom(network, 0)
+
 
 print("functios loaded")
 
@@ -240,7 +234,7 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1):
     print("goal variance: {}".format(np.var(DesiredGoal)))
     print("goal rank: {}".format(np.linalg.matrix_rank(DesiredGoal)))
 
-    current_generation_individual_group_pre = [CreateInd(nNode,nMatrix,norm) for i in range(POPULATION_SIZE)]
+    current_generation_individual_group_pre = [genom(create_network(nNode,nMatrix,norm),0) for i in range(POPULATION_SIZE)]
     current_generation_individual_group = [set_eva(Ind, DesiredGoal) for Ind in current_generation_individual_group_pre]
     
     initial_network_size = np.mean([np.linalg.norm(Total_in_out(Ind.getGenom()), 'fro') for Ind in current_generation_individual_group])
@@ -275,7 +269,7 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1):
         
         if count%100==0:
             most_fitted = sorted(selected_group, reverse=True, key=lambda u: u.evaluation)[0]
-            active_node = Active_node(most_fitted, mode="result")
+            active_node = Active_node(most_fitted.getGenom(), mode="result")
             ave_fitness = np.mean(selected_eva)
             print("Gen{}, Loss:{}, Active node: {}".format(count, ave_fitness, active_node))
 
@@ -292,12 +286,12 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1):
         # Steady state
         if (abs(np.mean(selected_eva)) < 0.01) & (output_style != 1): 
             most_fitted = sorted(selected_group, reverse=True, key=lambda u: u.evaluation)[0]
-            active_node = Active_node(most_fitted, mode="result")
-            print("Saturation at {}\n".format(count))
-            print("Gen{}, Loss:{}, Active node: {}\n\n".format(count, np.mean(selected_eva), active_node))
+            active_node = Active_node(most_fitted.getGenom(), mode="result")
+            print("Saturation at {}".format(count))
+            print("Gen{}, Fitness:{}, Active node: {}\n\n".format(count, np.mean(selected_eva), active_node))
 
             if output_style == 0:
-                active_node = Active_node(most_fitted, mode="result")
+                active_node = Active_node(most_fitted.getGenom(), mode="result")
                 return active_node
 
             if output_style == 2:
@@ -318,3 +312,85 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1):
 
 print("GeneticAlgorithm is loaded")
 
+
+## Gradient descend 
+def dLdW(network, AminusG, L):
+    network_copy = copy.deepcopy(network)
+    mat_dot = np.eye(nNode)
+    for l in range(L+1, nMatrix):
+        mat_dot  = np.dot(mat_dot, np.transpose(network_copy[l]))
+    mat_dot = np.dot(mat_dot, AminusG)
+    min_mat = 0#np.min(np.delete(np.array(range(nMatrix)), L))
+    #ここ0で良いのでは。
+    for l in range(0, L):
+        mat_dot  = np.dot(mat_dot, np.transpose(network_copy[l]))
+    return(mat_dot)
+
+
+def F(network):
+    AminusG = Total_in_out(copy.deepcopy(network))-DesiredGoal
+    grad = 2*np.array([dLdW(network, AminusG, l) for l in range(nMatrix)])
+    return grad*network
+
+def create_network(nNode, nMatrix, norm):
+    #This function returns Node x Node x Layer Matrix, which describe individual's network structure
+    pre_net = np.random.uniform(0, 0.05, (nMatrix, nNode, nNode))
+    pre_net_norm = (np.linalg.norm(Total_in_out(pre_net), ord="fro"))
+    normalizeF = (norm/pre_net_norm)**(1/(nMatrix))
+    network = normalizeF*pre_net
+    return network
+
+def GradientDescent(norm, G_params, MAX_STEP, output_style):
+
+    DesiredGoal = CreateRandomGoalMatrix(rank=G_params[0], norm=G_params[1], zvar=G_params[2])
+    Define_global_value_in_modules(DesiredGoal_ = DesiredGoal)
+
+    print("goal norm: {}".format(np.linalg.norm(DesiredGoal, "fro")))
+    print("goal variance: {}".format(np.var(DesiredGoal)))
+    print("goal rank: {}".format(np.linalg.matrix_rank(DesiredGoal)))
+
+    network = create_network(nNode, nMatrix, norm)
+    initial_network_size = np.linalg.norm(Total_in_out(network), ord=2)
+    print("initial network norm: {}".format(initial_network_size))
+    
+    h = 0.0001 # step width of Runge kutta
+
+    if output_style == 1:
+        active_node_list = list()
+
+    for step in range(MAX_STEP):
+        
+        #### 4K Runge-Kutta ####
+        k_1 = h * F(network)
+        k_2 = h * F(network -  k_1 /2)
+        k_3 = h * F(network -  k_2 /2)
+        k_4 = h * F(network - k_3)
+        network = network - 1/6 * (k_1 + 2*k_2 + 2*k_3 + k_4 )
+        #######################
+        loss = evaluation(network , DesiredGoal)
+        
+        if np.isnan(loss):
+            print("Divergence")
+            break
+
+        if step%5000==0:
+            print("========={}=========".format(step))
+            active_node = Active_node(network, "result")
+            print("Step{}, Loss:{}, Active node: {}\n\n".format(step, loss, active_node))
+
+        if (step&100 == 0) & (output_style == 1):
+            output_arr = active_node.copy()
+            output_arr.append(loss)
+            active_node_list.append(output_arr)
+
+
+        if (abs(loss) < 0.01) & (output_style == 0): #Fitness < 0.01
+            print("========={}=========".format(step))
+            print("Saturation at {}".format(step))
+            active_node = Active_node(network, "result")
+            print("Step{}, Loss:{}, Active node: {}\n\n".format(step, loss, active_node))
+
+            active_node = Active_node(network, mode="result")
+            return active_node
+
+print("GradientDescent is loaded")
