@@ -1,63 +1,73 @@
 import numpy as np
-import sys
 import csv
 import pandas as pd
 from BasicFunctions import *
+import argparse
 
-GoalMatrixRank = int(sys.argv[1]) # Set goal matrix rank
-TITLE = sys.argv[2] # Set output file name
-GoalVarianceNormalize = int(sys.argv[3])
-#sth = int(sys.argv[4]) if len(sys.argv) >= 3 else -1 #Threshold of how long sample the network in early phase.
-ALGORITHM = sys.argv[4]
+parser = argparse.ArgumentParser()
+parser.add_argument("filename", help="Output file name", type=str)
+parser.add_argument("goal_matrix_rank", help="Goal matrix rank", type=int)
+parser.add_argument("--goal_matrix_variance", help="Normalized goal matrix variance (No normalization if this set empty))", type=float)
+parser.add_argument("--init_net_norm", help="Norm of total inout relation matrix at first step", type=float)
+parser.add_argument("--algorithm", help="(GA, GD) Choose GA(GeneticAlgorithm; default) or GD(GradientDescent).", type=str)
+parser.add_argument("--evaluation", help="(0,1,2) Set Evaluate function. 0: normal evaluation function (default), 1: L1 regularization, 2: L2 regularization", type=int)
+parser.add_argument("--active_node", help="(0,1,2) Set Active node definition. 0: Contribution to fitness (default), 1: Contribution to total in-out, 2: Maximum interaction", type=int)
+parser.add_argument("--number_of_node", help="Please specify the number of node (only even number)", type=int)
+parser.add_argument("--max_generation", help="max count that simulation can reaches", type=int)
+args = parser.parse_args()
 
-"""
-Execute Evolutionary Simulation
-"""
 
-print("TITLE{}".format(TITLE))
-print("Rank{}".format(GoalMatrixRank))
 
+TITLE = args.filename
+if args.init_net_norm is not None:
+    print("init_net_norm is ignored in this program")
+print("filename:{}".format(TITLE))
 
 #### Simulation parameters #####
 
+ALGORITHM = "GA" if args.algorithm is None else args.algorithm
+### Simulaton Algorithm
+### GA: Genetic Algorithm (Evolution mode)
+### GD: Gradient Descent (ODE model)
+
+EVALUATION = 0 if args.evaluation is None else args.evaluation
+### Evaluation function
+### 0. Distance between total in-out matrix and goal matrix
+### 1. Distance between total in-out matrix and goal matrix + L1 regularization
+### 2. Distance between total in-out matrix and goal matrix + L2 regularization
+
+ActiveNodeDefinition = 0 if args.active_node is None else args.active_node
 ### Active node definition
 ### 0. Relative contribution of each node to the fitness.
 ### 1. Relative contribution of each node to the total in-out relation.
-### 3. Relative strength of maximal interaction of each node.
-ActiveNodeDefinition = 0
+### 2. Relative strength of maximal interaction of each node.
 
-### GoalMatrixParameters
-GoalMatrixRank = int(sys.argv[1])
+GoalMatrixRank = int(args.goal_matrix_rank)
 GoalMatrixNorm = 60
-GoalMatrixVariance = 1 if GoalVarianceNormalize else np.nan # If this set to np.nan, the variance is not normalized.
+GoalMatrixVariance = np.nan if args.goal_matrix_variance is None else args.goal_matrix_variance
 G_params = [GoalMatrixRank, GoalMatrixNorm, GoalMatrixVariance]
+### GoalMatrixParameters
 
-### Goal matrix chnage
-GoalMatrixChange = False
+nNode = 6 if args.number_of_node is None else args.number_of_node
+nLayer=5
+nMatrix = nLayer-1
+### Network structure
 
-### Goal matrix expansion
-GoalExpansion = False
-DuplicateTime = -1
+print("ALGORITHM: {}".format(ALGORITHM))
+print("Rank:{}".format(GoalMatrixRank))
 
-
-### Initial interaction strength (A0) ###
-INIT_NET_NORM = 0.01
 
 if ALGORITHM == "GA":
     POPULATION_SIZE = 100
-    MAX_GENERATION = 50000#120000
-    nNode=6
-    nLayer=5
-    nMatrix = nLayer-1
+    MAX_GENERATION = 50000 if args.max_generation is None else args.max_generation
     MUTATION_RATE = 0.2/(nMatrix*nNode*nNode)
-    init_value = [0.01, 0.1, 1.0, 2.0, 4.0, 6.0, 8.0, 10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70, 80]
-    Define_global_value_in_modules(nNode, nLayer, POPULATION_SIZE, MUTATION_RATE, None, ActiveNodeDefinition)
+    init_value =  [0.01,0.1,1.0,2.0,4.0,6.0,8.0,10,20,30,40,50,60,70,80] #for fig3B
+    #initvalue = [0.01, 0.1, 1.0, 2.0, 4.0, 6.0, 8.0, 10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70, 80] 
+    Define_global_value_in_modules(nNode, nLayer, POPULATION_SIZE, MUTATION_RATE, ActiveNodeDefinition, EVALUATION_=EVALUATION)
 if ALGORITHM == "GD":
-    nNode=6
-    nLayer=5
-    MAX_STEP = 10000000
-    init_value = [0.001, 0.01, 0.1, 1.0, 2.0, 4.0, 6.0, 8.0, 10, 20, 30, 40, 50, 60, 70, 80]
-    Define_global_value_in_modules(nNode_ = nNode, nLayer_ = nLayer, ActiveNodeDefinition_ = ActiveNodeDefinition)
+    MAX_STEP = 10000000 if args.max_generation is None else args.max_generation
+    init_value =  [0.001, 0.01,0.1,1.0,2.0,4.0,6.0,8.0,10,20,30,40,50,60,70,80]
+    Define_global_value_in_modules(nNode_ = nNode, nLayer_ = nLayer, ActiveNodeDefinition_ = ActiveNodeDefinition, EVALUATION_=EVALUATION)
 
 
 waist_std_list = list()

@@ -9,20 +9,28 @@ import sys
 import os 
 
 def Define_global_value_in_modules(nNode_=None, nLayer_=None, POPULATION_SIZE_=None, 
-    MUTATION_RATE_=None, DesiredGoal_=None, ActiveNodeDefinition_ = None):
+    MUTATION_RATE_=None, ActiveNodeDefinition_ = None, EVALUATION_ = None, SELECTION_ = None):
     global nNode
     global nLayer
     global nMatrix
     global POPULATION_SIZE
     global MUTATION_RATE
-    global DesiredGoal
     global ActiveNodeDefinition
+    global EVALUATION
+    global SELECTION
+    print("eva:{}".format(EVALUATION_))
     if nNode_ is not None: nNode = nNode_
     if nLayer_ is not None: nLayer, nMatrix = nLayer_, nLayer_-1
     if POPULATION_SIZE_ is not None: POPULATION_SIZE = POPULATION_SIZE_
     if MUTATION_RATE_ is not None: MUTATION_RATE = MUTATION_RATE_ 
-    if DesiredGoal_ is not None: DesiredGoal = DesiredGoal_
-    if ActiveNodeDefinition_ is not None: ActiveNodeDefinition = ActiveNodeDefinition_
+    ActiveNodeDefinition = 0 if ActiveNodeDefinition_ is None else ActiveNodeDefinition_
+    EVALUATION = 0 if EVALUATION_ is None else EVALUATION_
+    SELECTION = "tournament" if SELECTION_ is None else SELECTION_
+
+
+def Define_global_goal(DesiredGoal_):
+    global DesiredGoal
+    DesiredGoal = DesiredGoal_
 
 
 
@@ -79,19 +87,17 @@ def add_mutation(Ind, corrected_mut_rate):
 
 ## Tournament selection
 def select(population, tournament_size):    #Tournament selection
-    tournament_groups = [random.sample(population, tournament_size) for i in range(POPULATION_SIZE)]
-    selected = [ sorted(tournament_group, reverse=True, key=lambda u: u.evaluation)[0] for tournament_group in tournament_groups]
-    return selected
 
-## Elite selection
-"""
-def select(population, tournament_size):
-    upper_ind = sorted(population, reverse=True, key=lambda u: u.evaluation)[0:25]
-    non_upper_ind = [ind for ind in population if ind not in upper_ind]
-    random_ind = random.sample(non_upper_ind, 75)
-    selected =upper_ind + random_ind
-    return selected
-"""
+    if SELECTION == "tournament": #tournament selection
+        tournament_groups = [random.sample(population, tournament_size) for i in range(POPULATION_SIZE)]
+        selected = [ sorted(tournament_group, reverse=True, key=lambda u: u.evaluation)[0] for tournament_group in tournament_groups]
+        return selected
+    else: #elite selection
+        upper_ind = sorted(population, reverse=True, key=lambda u: u.evaluation)[0:25]
+        non_upper_ind = [ind for ind in population if ind not in upper_ind]
+        random_ind = random.sample(non_upper_ind, 75)
+        selected =upper_ind + random_ind
+        return selected
 
 def Deleted_fitness(Ind, node, layer):    
     modified_network =  copy.deepcopy(Ind)
@@ -208,27 +214,72 @@ def statistics_mode(data):
     return(mode)
 
 #Define fitness as the distance of goal matrix and total in-out matrix.
+
 def evaluation(Ind_network, DesiredGoal):
     z = Total_in_out(Ind_network)
     fitness = -1*np.sum((z - DesiredGoal)**2) #+ np.sum(Ind_network**2) Penalty
     return fitness
 
 
+def L1cost_evaluation(Ind_network, DesiredGoal):
+    z = Total_in_out(Ind_network)
+    fitness = -1*np.sum((z - DesiredGoal)**2) - np.sum(abs(Ind_network))
+    return fitness
+
+
+def L2cost_evaluation(Ind_network, DesiredGoal):
+    z = Total_in_out(Ind_network)
+    fitness = -1*np.sum((z - DesiredGoal)**2) - np.sum(Ind_network**2) 
+    return fitness
+
+
 def set_eva(Ind, DesiredGoal):
-    eva = evaluation(Ind.getGenom(), DesiredGoal)
+    if EVALUATION == 0:
+        eva = evaluation(Ind.getGenom(), DesiredGoal)
+    elif EVALUATION == 1:
+        eva = L1cost_evaluation(Ind.getGenom(), DesiredGoal)
+    elif EVALUATION == 2:
+        eva = L2cost_evaluation(Ind.getGenom(), DesiredGoal)
     Ind.setEvaluation(eva)
     return(Ind)
 
 
 
-print("functios loaded")
+print("functios are loaded")
 
 
+## For expansion of inputs and outputs
+def CreateVirtualDuplicateInd(Ind, DesiredGoal):
+    zeros = np.full((nNode,nNode),0.001)
+    DuplicateNet = list()
+    for LayerInt in Ind.getGenom():
+        DuplicateNet.append(np.block([[LayerInt,zeros],[zeros,zeros]]))
+    DuplicateNet = np.array(DuplicateNet)
+    duplicate_genom = genom(DuplicateNet, evaluation(DuplicateNet, DesiredGoal))
+    return duplicate_genom
 
-def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1):
+def Duplicate(network, nNode): 
+    DuplicateNet = list()
+    for LayerInt in network:
+        DuplicateNet.append(np.block([[LayerInt,LayerInt],[LayerInt,LayerInt]]))
+    DuplicateNet = np.array(DuplicateNet)
+    return DuplicateNet
 
+
+def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1, FLUCTUATION_MODE=-1, DuplicateTime=-1):
+
+    global nNode
+    global nLayer
+    global nMatrix
+    global POPULATION_SIZE
+    global MUTATION_RATE
+    global ActiveNodeDefinition
+    global EVALUATION
+    global SELECTION
+
+    print("nNode{}".format(nNode))
     DesiredGoal = CreateRandomGoalMatrix(rank=G_params[0], norm=G_params[1], zvar=G_params[2])
-    Define_global_value_in_modules(DesiredGoal_ = DesiredGoal)
+    Define_global_goal(DesiredGoal_ = DesiredGoal)
 
     print("goal norm: {}".format(np.linalg.norm(DesiredGoal, "fro")))
     print("goal variance: {}".format(np.var(DesiredGoal)))
@@ -250,8 +301,25 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1):
     if output_style == 2:
         TIME_SERIES_NETWORK = list()
 
-    print("GA started")
+    print("GA starts")
+
     for count in range(MAX_GENERATION):
+        
+        if count == DuplicateTime:
+            #Duplicate
+            print("Duplicate")
+            zeros = np.full((nNode,nNode),0.001)
+            DesiredGoal = Duplicate([DesiredGoal], nNode)[0]
+            current_generation_individual_group = [
+                CreateVirtualDuplicateInd(current_generation_individual_group[i], DesiredGoal) for i in range(POPULATION_SIZE)]
+            
+            nNode = nNode*2
+            mutation_rate = 0.2/(nMatrix*nNode*nNode)
+            Define_global_goal(DesiredGoal_ = DesiredGoal)
+            Define_global_value_in_modules(nNode, nLayer, POPULATION_SIZE, MUTATION_RATE, ActiveNodeDefinition, EVALUATION)
+
+            print("Goal matrix:{}".format(DesiredGoal.shape))
+            print("Network:{}\n".format(Total_in_out(current_generation_individual_group[0].getGenom()).shape))
 
         next_generation_network = [copy.deepcopy(Ind.getGenom()) for Ind in current_generation_individual_group]
         next_generation_individual_group = [genom(Network, 0) for Network in next_generation_network]
@@ -283,8 +351,28 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1):
                 print("sampling:{}".format(count))
                 TIME_SERIES_NETWORK.append(most_fitted.getGenom())
 
+        if count%1000==0:
+            ave_fitness = np.mean(selected_eva)
+            if (FLUCTUATION_MODE == 0) & (abs(ave_fitness) < 0.01):
+                print("Goal matrix change")
+                DesiredGoal =  CreateRandomGoalMatrix(rank=G_params[0], norm=G_params[1], zvar=G_params[2])
+                current_generation_individual_group = [set_eva(Ind, DesiredGoal) for Ind in current_generation_individual_group]
+                Define_global_goal(DesiredGoal_ = DesiredGoal)
+
+            if (FLUCTUATION_MODE == 1) & (abs(ave_fitness) < 0.01):
+                print("Goal matrix change")
+                DesiredGoal =  CreateRandomGoalMatrix(rank=6, norm=G_params[1], zvar=G_params[2])
+                current_generation_individual_group = [set_eva(Ind, DesiredGoal) for Ind in current_generation_individual_group]
+                Define_global_goal(DesiredGoal_ = DesiredGoal)
+
+            if FLUCTUATION_MODE == 2:
+                print("Goal matrix change")
+                DesiredGoal =  CreateRandomGoalMatrix(rank=G_params[0], norm=G_params[1], zvar=G_params[2])
+                current_generation_individual_group = [set_eva(Ind, DesiredGoal) for Ind in current_generation_individual_group]
+                Define_global_goal(DesiredGoal_ = DesiredGoal)
+
         # Steady state
-        if (abs(np.mean(selected_eva)) < 0.01) & (output_style != 1): 
+        if (abs(np.mean(selected_eva)) < 0.01) & (output_style%2 == 0): # no need to waist until steady state in output_style 1 and 3
             most_fitted = sorted(selected_group, reverse=True, key=lambda u: u.evaluation)[0]
             active_node = Active_node(most_fitted.getGenom(), mode="result")
             print("Saturation at {}".format(count))
@@ -309,8 +397,9 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1):
     if output_style == 2:
         print("Not saturated. Results are ignored.")
         return [np.nan, np.nan, np.nan]
-
-print("GeneticAlgorithm is loaded")
+    if output_style == 3:
+        print("Simulation end")
+        return active_node
 
 
 ## Gradient descend 
@@ -321,29 +410,20 @@ def dLdW(network, AminusG, L):
         mat_dot  = np.dot(mat_dot, np.transpose(network_copy[l]))
     mat_dot = np.dot(mat_dot, AminusG)
     min_mat = 0#np.min(np.delete(np.array(range(nMatrix)), L))
-    #ここ0で良いのでは。
     for l in range(0, L):
         mat_dot  = np.dot(mat_dot, np.transpose(network_copy[l]))
     return(mat_dot)
-
 
 def F(network):
     AminusG = Total_in_out(copy.deepcopy(network))-DesiredGoal
     grad = 2*np.array([dLdW(network, AminusG, l) for l in range(nMatrix)])
     return grad*network
 
-def create_network(nNode, nMatrix, norm):
-    #This function returns Node x Node x Layer Matrix, which describe individual's network structure
-    pre_net = np.random.uniform(0, 0.05, (nMatrix, nNode, nNode))
-    pre_net_norm = (np.linalg.norm(Total_in_out(pre_net), ord="fro"))
-    normalizeF = (norm/pre_net_norm)**(1/(nMatrix))
-    network = normalizeF*pre_net
-    return network
 
 def GradientDescent(norm, G_params, MAX_STEP, output_style):
 
     DesiredGoal = CreateRandomGoalMatrix(rank=G_params[0], norm=G_params[1], zvar=G_params[2])
-    Define_global_value_in_modules(DesiredGoal_ = DesiredGoal)
+    Define_global_goal(DesiredGoal_ = DesiredGoal)
 
     print("goal norm: {}".format(np.linalg.norm(DesiredGoal, "fro")))
     print("goal variance: {}".format(np.var(DesiredGoal)))
@@ -393,4 +473,3 @@ def GradientDescent(norm, G_params, MAX_STEP, output_style):
             active_node = Active_node(network, mode="result")
             return active_node
 
-print("GradientDescent is loaded")
