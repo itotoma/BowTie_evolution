@@ -171,7 +171,7 @@ python3 EvolTrajectory.py "Fig4/EvolTrajectoryA001_R6_BeforeAdapt" 6 --init_net_
 
 
 mkdir Fig5
-python3 EvolTrajectory.py "Fig5/EvolTrajectoryA10_R1_Duplicate" 1 --init_net_norm 10 --max_generation 10000 --goal_duplication 1
-python3 EvolTrajectory.py "Fig5/EvolTrajectoryA10_R1_NoDuplicate" 1 --init_net_norm 10 --max_generation 10000 --goal_duplication 0
+python3 EvolTrajectory.py "Fig5/EvolTrajectoryA10_R1_Duplicate" 1 --init_net_norm 10 --max_generation 10000 --number_of_node 3 --number_of_layer 3 --goal_duplication 1
+python3 EvolTrajectory.py "Fig5/EvolTrajectoryA10_R1_NoDuplicate" 1 --init_net_norm 10 --max_generation 10000 --number_of_node 3 --number_of_layer 3 --goal_duplication 0
 
 

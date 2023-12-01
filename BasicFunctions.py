@@ -167,9 +167,9 @@ def Active_node(Ind, mode):
 
 def CreateRandomGoalMatrix(rank, norm, zvar = np.nan):
     
-    if nNode%2 != 0:
-        raise ValueError("nNode must be even number")
-    
+    if (nNode%2 != 0) & (rank != 1):
+        raise ValueError("nNode must be even number when rank is larger than 1")
+
     if rank == 1:
         G = np.full((nNode,nNode),10)
     elif rank == 2:
@@ -390,7 +390,7 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1, FLU
 
     if output_style == 0:
         print("Not saturated. Results are ignored.")
-        return [np.nan, np.nan, np.nan, np.nan, np.nan]
+        return [np.nan]*nLayer
     if output_style == 1:
         print("Simulation end")
         return active_node_list
@@ -477,7 +477,7 @@ def GradientDescent(norm, G_params, MAX_STEP, output_style):
 
     if output_style == 0:
         print("Not saturated. Results are ignored.")
-        return [np.nan, np.nan, np.nan, np.nan, np.nan]
+        return [np.nan]*nLayer
     if output_style == 1:
         print("Simulation end")
         return active_node_list

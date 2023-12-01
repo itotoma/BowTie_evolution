@@ -16,6 +16,7 @@ parser.add_argument("--number_of_node", help="Please specify the number of node 
 parser.add_argument("--max_generation", help="max count that simulation can reaches", type=int)
 parser.add_argument("--selection_method", help="Choose selection method in GA (tournament, elite) (tournament if this set empty))", type=str) 
 parser.add_argument("--skip_saturation_stop", help="GA runs until max generation if you set 3", type=str) 
+parser.add_argument("--number_of_layer", help="number of layer", type=int)
 
 args = parser.parse_args()
 
@@ -60,7 +61,7 @@ G_params = [GoalMatrixRank, GoalMatrixNorm, GoalMatrixVariance]
 ### GoalMatrixParameters
 
 nNode = 6 if args.number_of_node is None else args.number_of_node
-nLayer=5
+nLayer = 5 if args.number_of_layer is None else args.number_of_layer
 nMatrix = nLayer-1
 ### Network structure
 

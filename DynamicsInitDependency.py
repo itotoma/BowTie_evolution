@@ -13,6 +13,7 @@ parser.add_argument("--algorithm", help="(GA, GD) Choose GA(GeneticAlgorithm; de
 parser.add_argument("--evaluation", help="(0,1,2) Set Evaluate function. 0: normal evaluation function (default), 1: L1 regularization, 2: L2 regularization", type=int)
 parser.add_argument("--active_node", help="(0,1,2) Set Active node definition. 0: Contribution to fitness (default), 1: Contribution to total in-out, 2: Maximum interaction", type=int)
 parser.add_argument("--number_of_node", help="Please specify the number of node (only even number)", type=int)
+parser.add_argument("--number_of_layer", help="number of layer", type=int)
 parser.add_argument("--max_generation", help="max count that simulation can reaches", type=int)
 parser.add_argument("--sampling_period_in_early_phase", help="sampling period in early phase of evolution", type=int)
 
@@ -53,7 +54,7 @@ G_params = [GoalMatrixRank, GoalMatrixNorm, GoalMatrixVariance]
 ### GoalMatrixParameters
 
 nNode = 6 if args.number_of_node is None else args.number_of_node
-nLayer=5
+nLayer = 5 if args.number_of_layer is None else args.number_of_layer
 nMatrix = nLayer-1
 ### Network structure
 

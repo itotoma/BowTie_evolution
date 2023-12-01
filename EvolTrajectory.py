@@ -13,6 +13,7 @@ parser.add_argument("--algorithm", help="(GA, GD) Choose GA(GeneticAlgorithm; de
 parser.add_argument("--evaluation", help="(0,1,2) Set Evaluate function. 0: normal evaluation function (default), 1: L1 regularization, 2: L2 regularization", type=int)
 parser.add_argument("--active_node", help="(0,1,2) Set Active node definition. 0: Contribution to fitness (default), 1: Contribution to total in-out, 2: Maximum interaction", type=int)
 parser.add_argument("--number_of_node", help="Please specify the number of node (only even number)", type=int)
+parser.add_argument("--number_of_layer", help="number of layer", type=int)
 parser.add_argument("--max_generation", help="max count that simulation can reaches", type=int)
 parser.add_argument("--goal_fluctuation_mode", help="goal matrix fluctuation. 1: Start elements fluctuation after adaptation. 2: Start elements flucutuation with rank change after adaptation. 3: Start fluctuate before adaptation", type=int)
 parser.add_argument("--goal_duplication", help="goal expansion (0, 1). 0: No expansion", type=int)
@@ -51,8 +52,8 @@ GoalMatrixVariance = np.nan if args.goal_matrix_variance is None else args.goal_
 G_params = [GoalMatrixRank, GoalMatrixNorm, GoalMatrixVariance]
 
 ### Network structure
-nNode = 6 if args.number_of_node is None else args.number_of_node
-nLayer=5
+nNode  = 6 if args.number_of_node is None else args.number_of_node
+nLayer = 5 if args.number_of_layer is None else args.number_of_layer
 nMatrix = nLayer-1
 
 
