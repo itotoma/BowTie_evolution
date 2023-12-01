@@ -4,8 +4,8 @@
 # Since each command takes time to complete, execution in high performance computer is preffered.
 
 # Note
-# Each scripts lost unneccesary information for generating corresponding figure 
-# If you want to grasp full information, execute XXXXXX
+# Some scripts lost unneccesary information for generating corresponding figure. 
+# If you want to obtain full information (e.g., evolutionary trajectory of network structure and fitness), please run DynamicsInitDependncy.py (GeneticAlgorithm function returns full information by setting output_style=2).
 
 #### Fig3A Analyzed data ####
 mkdir Fig3A
