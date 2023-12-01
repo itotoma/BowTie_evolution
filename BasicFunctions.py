@@ -473,3 +473,11 @@ def GradientDescent(norm, G_params, MAX_STEP, output_style):
             active_node = Active_node(network, mode="result")
             return active_node
 
+    print("End of run")
+
+    if output_style == 0:
+        print("Not saturated. Results are ignored.")
+        return [np.nan, np.nan, np.nan, np.nan, np.nan]
+    if output_style == 1:
+        print("Simulation end")
+        return active_node_list
