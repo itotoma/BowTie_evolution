@@ -17,6 +17,7 @@ parser.add_argument("--number_of_layer", help="number of layer", type=int)
 parser.add_argument("--max_generation", help="max count that simulation can reaches", type=int)
 parser.add_argument("--goal_fluctuation_mode", help="goal matrix fluctuation. 1: Start elements fluctuation after adaptation. 2: Start elements flucutuation with rank change after adaptation. 3: Start fluctuate before adaptation", type=int)
 parser.add_argument("--goal_duplication", help="goal expansion (0, 1). 0: No expansion", type=int)
+parser.add_argument("--raw_mut_rate", help="mutatino rate, default: 0.2", type=float)
 args = parser.parse_args()
 
 
@@ -61,6 +62,8 @@ nMatrix = nLayer-1
 GOAL_FLUCTUATION_MODE = -1 if args.goal_fluctuation_mode is None else args.goal_fluctuation_mode
 DUPLICATE_TIME = 1000 if args.goal_duplication else -1
 
+raw_mut_rate = 0.2 if args.raw_mut_rate is None else args.raw_mut_rate
+
 print("ALGORITHM: {}".format(ALGORITHM))
 print("Rank:{}".format(GoalMatrixRank))
 
@@ -68,14 +71,19 @@ print("Rank:{}".format(GoalMatrixRank))
 if ALGORITHM == "GA":
     POPULATION_SIZE = 100
     MAX_GENERATION = 50000 if args.max_generation is None else args.max_generation
-    MUTATION_RATE = 0.2/(nMatrix*nNode*nNode)
-    Define_global_value_in_modules(nNode, nLayer, POPULATION_SIZE, MUTATION_RATE, ActiveNodeDefinition, EVALUATION_=EVALUATION)
+    MUTATION_RATE = raw_mut_rate/(nMatrix*nNode*nNode)
+    Define_global_value_in_modules(nNode, nLayer, POPULATION_SIZE, MUTATION_RATE, raw_mut_rate, ActiveNodeDefinition, EVALUATION_=EVALUATION)
 if ALGORITHM == "GD":
     MAX_STEP = 10000000 if args.max_generation is None else args.max_generation
     Define_global_value_in_modules(nNode_ = nNode, nLayer_ = nLayer, ActiveNodeDefinition_ = ActiveNodeDefinition, EVALUATION_=EVALUATION)
 
 if ALGORITHM == "GA":
-    rep_run_result = [GeneticAlgorithm(INIT_NET_NORM, G_params, MAX_GENERATION, output_style = 1, FLUCTUATION_MODE=GOAL_FLUCTUATION_MODE, DuplicateTime=DUPLICATE_TIME) for i in range(100)]
+	rep_run_result = list()
+	for i in range(100):
+		Define_global_value_in_modules(nNode_ = nNode, nLayer_ = nLayer)
+		result = GeneticAlgorithm(INIT_NET_NORM, G_params, MAX_GENERATION, output_style = 1, FLUCTUATION_MODE=GOAL_FLUCTUATION_MODE, DuplicateTime=DUPLICATE_TIME)
+		rep_run_result.append(result)
+    #rep_run_result = [GeneticAlgorithm(INIT_NET_NORM, G_params, MAX_GENERATION, output_style = 1, FLUCTUATION_MODE=GOAL_FLUCTUATION_MODE, DuplicateTime=DUPLICATE_TIME) for i in range(100)]
 if ALGORITHM == "GD":
     rep_run_result = [GradientDescent(INIT_NET_NORM, G_params, MAX_STEP, output_style = 1) for i in range(100)]
 

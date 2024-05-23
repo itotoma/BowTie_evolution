@@ -18,11 +18,15 @@
 #### `BasicFunctios.py`
 >Set of functios. Genetic algorithm and gradient descent algorithm are also defined in this script.
 >
-#### `NetworkEvolution_GA_SingleTest.ipynb`
->Genetic algorithm for network evolution.
+#### `NetworkEvolution_LinearGA.ipynb`
+>Genetic algorithm for lienar network evolution.
 >This sript can be used for the test run of evolutionary simulation.
 
-#### `NetworkEvolution_ODE_SingleTest.ipynb`
+#### `NetworkEvolution_NonLinearGA.ipynb`
+>Genetic algorithm for non linear network evolution.
+>This sript can be used for the test run of evolutionary simulation.
+
+#### `NetworkEvolution_ODE.ipynb`
 >Gradient descnet for network evolution.
 >This sript can be used for the test run of deterministic model.
 

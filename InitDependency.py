@@ -15,6 +15,7 @@ parser.add_argument("--active_node", help="(0,1,2) Set Active node definition. 0
 parser.add_argument("--number_of_node", help="Please specify the number of node (only even number)", type=int)
 parser.add_argument("--number_of_layer", help="number of layer", type=int)
 parser.add_argument("--max_generation", help="max count that simulation can reaches", type=int)
+parser.add_argument("--raw_mut_rate", help="mutatino rate, default: 0.2", type=float)
 args = parser.parse_args()
 
 
@@ -54,6 +55,8 @@ nLayer = 5 if args.number_of_layer is None else args.number_of_layer
 nMatrix = nLayer-1
 ### Network structure
 
+raw_mut_rate = 0.2 if args.raw_mut_rate is None else args.raw_mut_rate
+
 print("ALGORITHM: {}".format(ALGORITHM))
 print("Rank:{}".format(GoalMatrixRank))
 
@@ -61,10 +64,10 @@ print("Rank:{}".format(GoalMatrixRank))
 if ALGORITHM == "GA":
     POPULATION_SIZE = 100
     MAX_GENERATION = 50000 if args.max_generation is None else args.max_generation
-    MUTATION_RATE = 0.2/(nMatrix*nNode*nNode)
+    MUTATION_RATE = raw_mut_rate/(nMatrix*nNode*nNode)
     init_value =  [0.01,0.1,1.0,2.0,4.0,6.0,8.0,10,20,30,40,50,60,70,80] #for fig3B
     #initvalue = [0.01, 0.1, 1.0, 2.0, 4.0, 6.0, 8.0, 10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70, 80] 
-    Define_global_value_in_modules(nNode, nLayer, POPULATION_SIZE, MUTATION_RATE, ActiveNodeDefinition, EVALUATION_=EVALUATION)
+    Define_global_value_in_modules(nNode, nLayer, POPULATION_SIZE, MUTATION_RATE, raw_mut_rate, ActiveNodeDefinition, EVALUATION_=EVALUATION)
 if ALGORITHM == "GD":
     MAX_STEP = 10000000 if args.max_generation is None else args.max_generation
     init_value =  [0.001, 0.01,0.1,1.0,2.0,4.0,6.0,8.0,10,20,30,40,50,60,70,80]

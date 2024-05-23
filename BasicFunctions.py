@@ -9,12 +9,13 @@ import sys
 import os 
 
 def Define_global_value_in_modules(nNode_=None, nLayer_=None, POPULATION_SIZE_=None, 
-    MUTATION_RATE_=None, ActiveNodeDefinition_ = None, EVALUATION_ = None, SELECTION_ = None):
+    MUTATION_RATE_=None, raw_mut_rate_ = None, ActiveNodeDefinition_ = None, EVALUATION_ = None, SELECTION_ = None):
     global nNode
     global nLayer
     global nMatrix
     global POPULATION_SIZE
     global MUTATION_RATE
+    global raw_mut_rate
     global ActiveNodeDefinition
     global EVALUATION
     global SELECTION
@@ -22,7 +23,8 @@ def Define_global_value_in_modules(nNode_=None, nLayer_=None, POPULATION_SIZE_=N
     if nNode_ is not None: nNode = nNode_
     if nLayer_ is not None: nLayer, nMatrix = nLayer_, nLayer_-1
     if POPULATION_SIZE_ is not None: POPULATION_SIZE = POPULATION_SIZE_
-    if MUTATION_RATE_ is not None: MUTATION_RATE = MUTATION_RATE_ 
+    if MUTATION_RATE_ is not None: MUTATION_RATE = MUTATION_RATE_
+    if raw_mut_rate_ is not None: raw_mut_rate=raw_mut_rate_ 
     ActiveNodeDefinition = 0 if ActiveNodeDefinition_ is None else ActiveNodeDefinition_
     EVALUATION = 0 if EVALUATION_ is None else EVALUATION_
     SELECTION = "tournament" if SELECTION_ is None else SELECTION_
@@ -180,7 +182,17 @@ def CreateRandomGoalMatrix(rank, norm, zvar = np.nan):
         a = np.full((int(nNode/3),int(nNode/3)),10)
         b = np.full((int(nNode/3),int(nNode/3)), 0)
         G = np.block([[a,b,b],[b,a,b], [b, b,a]])
-    elif rank == 6:
+    elif rank == 4:
+        a = np.full((2,2),10)
+        b = np.full((2,2),0)
+        c = np.diag([10,10])
+        G = np.block([[a,b,b],[b,a,b],[b,b,c]])
+    elif rank == 5:
+        a = np.full((2,2),10)
+        b = np.full((2,2),0)
+        c = np.diag([10,10])
+        G = np.block([[a,b,b],[b,c,b],[b,b,c]])   
+    elif rank == nNode:
         G = np.diag(np.repeat(10,nNode))
     else:
         raise ValueError("Please choose rank from 1, 2, 3, and 6")
@@ -273,6 +285,7 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1, FLU
     global nMatrix
     global POPULATION_SIZE
     global MUTATION_RATE
+    global raw_mut_rate
     global ActiveNodeDefinition
     global EVALUATION
     global SELECTION
@@ -314,9 +327,9 @@ def GeneticAlgorithm(norm, G_params, MAX_GENERATION, output_style, sth = -1, FLU
                 CreateVirtualDuplicateInd(current_generation_individual_group[i], DesiredGoal) for i in range(POPULATION_SIZE)]
             
             nNode = nNode*2
-            mutation_rate = 0.2/(nMatrix*nNode*nNode)
+            mutation_rate = raw_mut_rate/(nMatrix*nNode*nNode)
             Define_global_goal(DesiredGoal_ = DesiredGoal)
-            Define_global_value_in_modules(nNode, nLayer, POPULATION_SIZE, MUTATION_RATE, ActiveNodeDefinition, EVALUATION)
+            Define_global_value_in_modules(nNode, nLayer, POPULATION_SIZE, MUTATION_RATE, raw_mut_rate, ActiveNodeDefinition, EVALUATION)
 
             print("Goal matrix:{}".format(DesiredGoal.shape))
             print("Network:{}\n".format(Total_in_out(current_generation_individual_group[0].getGenom()).shape))
