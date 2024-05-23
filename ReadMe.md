@@ -1,8 +1,8 @@
-# Emergence of bow-tie architecture in evolving feedforward network
+# Revisiting the Evolution of Bow-tie Architecture in Signaling Networks
 
-- ### All simulation commands and conditions are enumerated in the `execute_commands.sh`
-- ### All data are uploaded in the zenodo https://zenodo.org/records/10207353
-- ### All figure creation code are written in the `FigureGenerator.ipynb`
+-  All simulation commands and conditions are enumerated in the `execute_commands.sh`
+-  All data are uploaded in the zenodo https://zenodo.org/records/11090260
+- All figure creation code are in the `FigureGenerator.ipynb`
 
 
 
@@ -11,7 +11,7 @@
 >Data is downloded from zenodo in this script.
 
 ### `execute_commands.sh`
->This shell file enumerates commands which generate data used in the figure.
+>This shell file enumerates commands which generate raw data used in the figure.
 >You can see the detail of parameters by `python XXXX.py -h` .
 
 
